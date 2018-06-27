@@ -1,1 +1,1 @@
-# nfc_android_sample
+# Android Project to test NFC capabilities. 
