@@ -5,4 +5,5 @@
     <string name="aiddescription">NFC demo</string>
     <string name="title_activity_amount">AmountActivity</string>
     <string name="title_activity_nfc_placeholder">NfcPlaceholderActivity</string>
+    <string name="title_activity_pay_with_nfc">PayWithNfcActivity</string>
 </resources>

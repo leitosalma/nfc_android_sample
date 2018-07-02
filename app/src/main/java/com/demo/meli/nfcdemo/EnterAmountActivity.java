@@ -3,8 +3,6 @@ package com.demo.meli.nfcdemo;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
@@ -13,14 +11,17 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 
-public class AmountActivity extends AppCompatActivity {
+public class EnterAmountActivity extends AppCompatActivity {
+
+    public static String EXTRA_AMOUNT = "extra_amount";
 
     private EditText amountEditText;
+    private Button confirmButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_amount);
+        setContentView(R.layout.activity_enter_amount);
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -32,19 +33,21 @@ public class AmountActivity extends AppCompatActivity {
         imm.showSoftInput(amountEditText, InputMethodManager.SHOW_IMPLICIT);
         amountEditText.requestFocus();
 
-        Button waitForPaymentButton = findViewById(R.id.wait_for_payment);
-        waitForPaymentButton.setOnClickListener(new View.OnClickListener() {
+        confirmButton = findViewById(R.id.wait_for_payment);
+        confirmButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // Send the amount to the CardEmulationService
-                Intent intent = new Intent(view.getContext(), NfcCardEmulationService.class);
-                intent.putExtra(NfcCardEmulationService.AMOUNT_TO_RECEIVE_EXTRA, Float.parseFloat(amountEditText.getText().toString()));
-                startService(intent);
-
-                Intent activityIntent = new Intent(AmountActivity.this, NfcPlaceholderActivity.class);
-                startActivity(activityIntent);
+                Intent returnIntent = new Intent();
+                returnIntent.putExtra(EXTRA_AMOUNT, Float.parseFloat(amountEditText.getText().toString()));
+                setResult(RESULT_OK, returnIntent);
+                finish();
             }
         });
+    }
+
+    public static Intent newIntent(final Context context) {
+        final Intent intent = new Intent(context, EnterAmountActivity.class);
+        return intent;
     }
 
     @Override

@@ -43,7 +43,7 @@
             android:layout_below="@+id/amount_edit_text"
             android:layout_centerHorizontal="true"
             android:layout_marginTop="20dp"
-            android:text="Cobrar con NFC"/>
+            android:text="Continuar"/>
 
     </RelativeLayout>
 </android.support.design.widget.CoordinatorLayout>

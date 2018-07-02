@@ -1,19 +1,21 @@
 package com.demo.meli.nfcdemo;
 
-import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.nfc.NdefMessage;
 import android.nfc.NdefRecord;
 import android.nfc.cardemulation.HostApduService;
 import android.os.Bundle;
-import android.os.IBinder;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import java.util.Arrays;
+import android.os.Handler;
 
 public class NfcCardEmulationService extends HostApduService {
 
-    public static String AMOUNT_TO_RECEIVE_EXTRA = "amount_to_receive_extra";
+    public static final String INTENT_TAG_READ = "mp_tag_read";
+    private static String PAYMENT_AMOUNT = "payment_amount";
 
     private String paymentUrl = "melinfc://processNFCPayment?userId=999";
 
@@ -27,6 +29,12 @@ public class NfcCardEmulationService extends HostApduService {
 
     public NfcCardEmulationService() {
 
+    }
+
+    public static Intent newIntent(final Context context, Float paymentAmount) {
+        final Intent intent = new Intent(context, NfcCardEmulationService.class);
+        intent.putExtra(PAYMENT_AMOUNT, paymentAmount);
+        return intent;
     }
 
     private final static byte[] SELECT_APP = new byte[] {(byte)0x00, (byte)0xa4, (byte)0x04, (byte)0x00,
@@ -64,7 +72,7 @@ public class NfcCardEmulationService extends HostApduService {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Float paymentAmount = intent.getFloatExtra(AMOUNT_TO_RECEIVE_EXTRA, 0);
+        Float paymentAmount = intent.getFloatExtra(PAYMENT_AMOUNT, 0);
 
         generateNdefMessage(paymentAmount);
 
@@ -84,9 +92,6 @@ public class NfcCardEmulationService extends HostApduService {
 
     @Override
     public byte[] processCommandApdu(byte[] commandApdu, Bundle extras) {
-
-        Log.d("NFC", "Processing apdu command: " + commandApdu);
-
 
         if (Arrays.equals(SELECT_APP, commandApdu)) {
             mAppSelected = true;
@@ -110,6 +115,8 @@ public class NfcCardEmulationService extends HostApduService {
             if (mCcSelected && offset == 0 && le == CC_FILE.length) {
                 System.arraycopy(CC_FILE, offset, responseApdu, 0, le);
                 System.arraycopy(SUCCESS_SW, 0, responseApdu, le, SUCCESS_SW.length);
+
+                tagRead();
 
                 return responseApdu;
             } else if (mNdefSelected) {
@@ -142,13 +149,18 @@ public class NfcCardEmulationService extends HostApduService {
 
         int nlen = ndefMessage.getByteArrayLength();
 
-        Log.d("NFC", "Ndef Message Lenght: " + nlen);
-
         mNdefRecordFile = new byte[nlen + 2];
 
         mNdefRecordFile[0] = (byte)((nlen & 0xff00) / 256);
         mNdefRecordFile[1] = (byte)(nlen & 0xff);
 
         System.arraycopy(ndefMessage.toByteArray(), 0, mNdefRecordFile, 2, ndefMessage.getByteArrayLength());
+    }
+
+    private void tagRead() {
+        Log.d("NFC", "Tag Read!!!");
+
+        Intent intent = new Intent(INTENT_TAG_READ);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
 }

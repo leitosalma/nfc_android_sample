@@ -2,16 +2,20 @@ package com.demo.meli.nfcdemo;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
 
 public class MainActivity extends AppCompatActivity {
+
+    private static int PAY_REQUEST_CODE = 1;
+    private static int RECEIVE_PAYMENT_REQUEST_CODE = 2;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,10 +28,32 @@ public class MainActivity extends AppCompatActivity {
         receivePaymentButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(MainActivity.this, AmountActivity.class);
-                startActivity(intent);
+                startActivityForResult(EnterAmountActivity.newIntent(MainActivity.this), 1);
             }
         });
+
+        Button sendPaymentButton = findViewById(R.id.send_payment_button);
+        sendPaymentButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(NfcPlaceholderActivity.newIntent(MainActivity.this, "Acercá tu teléfono al del vendedor para realizar el pago"));
+            }
+        });
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == PAY_REQUEST_CODE) {
+            Float paymentAmount = data.getFloatExtra(EnterAmountActivity.EXTRA_AMOUNT, 0);
+
+            // Send the amount to the CardEmulationService
+            startService(NfcCardEmulationService.newIntent(this, paymentAmount));
+
+            // Show the placeholder activity
+            startActivity(NfcPlaceholderActivity.newIntent(this, "Acercá tu teléfono al del comprador para terminar el pago"));
+        }
     }
 
     @Override

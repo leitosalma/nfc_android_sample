@@ -37,12 +37,24 @@
         </service>
 
         <activity
-            android:name=".AmountActivity"
+            android:name=".EnterAmountActivity"
             android:label="@string/title_activity_amount"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".NfcPlaceholderActivity"
             android:label="@string/title_activity_nfc_placeholder"
+            android:theme="@style/AppTheme.NoActionBar">
+
+            <intent-filter>
+                <action android:name="android.nfc.action.NDEF_DISCOVERED" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="melinfc" />
+            </intent-filter>
+
+        </activity>
+        <activity
+            android:name=".PayWithNfcActivity"
+            android:label="@string/title_activity_pay_with_nfc"
             android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
