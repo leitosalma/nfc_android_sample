@@ -22,14 +22,28 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".NfcCardEmulationService" android:exported="true" android:enabled="true"
+        <service
+            android:name=".NfcCardEmulationService"
+            android:enabled="true"
+            android:exported="true"
             android:permission="android.permission.BIND_NFC_SERVICE">
             <intent-filter>
-                <action android:name="android.nfc.cardemulation.action.HOST_APDU_SERVICE"/>
+                <action android:name="android.nfc.cardemulation.action.HOST_APDU_SERVICE" />
             </intent-filter>
-            <meta-data android:name="android.nfc.cardemulation.host_apdu_service"
-                android:resource="@xml/apduservice"/>
+
+            <meta-data
+                android:name="android.nfc.cardemulation.host_apdu_service"
+                android:resource="@xml/apduservice" />
         </service>
+
+        <activity
+            android:name=".AmountActivity"
+            android:label="@string/title_activity_amount"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".NfcPlaceholderActivity"
+            android:label="@string/title_activity_nfc_placeholder"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
 </manifest>

@@ -7,10 +7,24 @@ import android.nfc.NdefRecord;
 import android.nfc.cardemulation.HostApduService;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.util.Log;
 
 import java.util.Arrays;
 
 public class NfcCardEmulationService extends HostApduService {
+
+    public static String AMOUNT_TO_RECEIVE_EXTRA = "amount_to_receive_extra";
+
+    private String paymentUrl = "melinfc://processNFCPayment?userId=999";
+
+    private byte[] mNdefRecordFile;
+
+    private boolean mAppSelected;
+
+    private boolean mCcSelected;
+
+    private boolean mNdefSelected;
+
     public NfcCardEmulationService() {
 
     }
@@ -48,15 +62,14 @@ public class NfcCardEmulationService extends HostApduService {
             (byte)0xff, // NDEF File write access denied
     };
 
-    private static final String URL = "melinfc://compraloquequieras.com";
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        Float paymentAmount = intent.getFloatExtra(AMOUNT_TO_RECEIVE_EXTRA, 0);
 
-    private byte[] mNdefRecordFile;
+        generateNdefMessage(paymentAmount);
 
-    private boolean mAppSelected;
-
-    private boolean mCcSelected;
-
-    private boolean mNdefSelected;
+        return super.onStartCommand(intent, flags, startId);
+    }
 
     @Override
     public void onCreate() {
@@ -66,33 +79,28 @@ public class NfcCardEmulationService extends HostApduService {
         mCcSelected = false;
         mNdefSelected = false;
 
-        NdefRecord record = NdefRecord.createUri(URL);
-        NdefMessage ndefMessage = new NdefMessage(record);
-
-        int nlen = ndefMessage.getByteArrayLength();
-
-        mNdefRecordFile = new byte[nlen + 2];
-
-        mNdefRecordFile[0] = (byte)((nlen & 0xff00) / 256);
-        mNdefRecordFile[1] = (byte)(nlen & 0xff);
-        System.arraycopy(ndefMessage.toByteArray(), 0, mNdefRecordFile, 2, ndefMessage.getByteArrayLength());
+        generateNdefMessage(0f);
     }
 
     @Override
     public byte[] processCommandApdu(byte[] commandApdu, Bundle extras) {
+
+        Log.d("NFC", "Processing apdu command: " + commandApdu);
+
+
         if (Arrays.equals(SELECT_APP, commandApdu)) {
             mAppSelected = true;
             mCcSelected = false;
             mNdefSelected = false;
-            return SUCCESS_SW; // 成功
+            return SUCCESS_SW;
         } else if (mAppSelected && Arrays.equals(SELECT_CC_FILE, commandApdu)) {
             mCcSelected = true;
             mNdefSelected = false;
-            return SUCCESS_SW; // 成功
+            return SUCCESS_SW;
         } else if (mAppSelected && Arrays.equals(SELECT_NDEF_FILE, commandApdu)) {
             mCcSelected = false;
             mNdefSelected = true;
-            return SUCCESS_SW; // 成功
+            return SUCCESS_SW;
         } else if (commandApdu[0] == (byte)0x00 && commandApdu[1] == (byte)0xb0) {
             int offset = (0x00ff & commandApdu[2]) * 256 + (0x00ff & commandApdu[3]);
             int le = 0x00ff & commandApdu[4];
@@ -122,5 +130,23 @@ public class NfcCardEmulationService extends HostApduService {
         mAppSelected = false;
         mCcSelected = false;
         mNdefSelected = false;
+    }
+
+    private void generateNdefMessage(Float paymentAmount) {
+        String url = paymentAmount > 0 ? (paymentUrl + "&amount=" + paymentAmount) : paymentUrl;
+
+        Log.d("NFC", "Writing payment url to tag: " + url);
+
+        NdefRecord record = NdefRecord.createUri(url);
+        NdefMessage ndefMessage = new NdefMessage(record);
+
+        int nlen = ndefMessage.getByteArrayLength();
+
+        mNdefRecordFile = new byte[nlen + 2];
+
+        mNdefRecordFile[0] = (byte)((nlen & 0xff00) / 256);
+        mNdefRecordFile[1] = (byte)(nlen & 0xff);
+
+        System.arraycopy(ndefMessage.toByteArray(), 0, mNdefRecordFile, 2, ndefMessage.getByteArrayLength());
     }
 }

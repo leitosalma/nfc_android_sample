@@ -3,4 +3,6 @@
     <string name="action_settings">Settings</string>
     <string name="servicedesc">NFC Demo</string>
     <string name="aiddescription">NFC demo</string>
+    <string name="title_activity_amount">AmountActivity</string>
+    <string name="title_activity_nfc_placeholder">NfcPlaceholderActivity</string>
 </resources>
