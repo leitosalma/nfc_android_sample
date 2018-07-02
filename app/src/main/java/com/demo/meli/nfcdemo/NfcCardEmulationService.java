@@ -57,7 +57,7 @@ public class NfcCardEmulationService extends HostApduService {
             0x00, 0x34, // Maximum C-APDU data size
             0x04, 0x06, // Tag & Length
             (byte)0xe1, 0x04, // NDEF File Identifier
-            0x00, 0x32, // Maximum NDEF size
+            0x00, (byte)0xff, // Maximum NDEF size
             0x00, // NDEF file read access granted
             (byte)0xff, // NDEF File write access denied
     };
@@ -141,6 +141,8 @@ public class NfcCardEmulationService extends HostApduService {
         NdefMessage ndefMessage = new NdefMessage(record);
 
         int nlen = ndefMessage.getByteArrayLength();
+
+        Log.d("NFC", "Ndef Message Lenght: " + nlen);
 
         mNdefRecordFile = new byte[nlen + 2];
 
