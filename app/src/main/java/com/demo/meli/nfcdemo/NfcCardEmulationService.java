@@ -87,6 +87,11 @@ public class NfcCardEmulationService extends HostApduService {
     public void onCreate() {
         super.onCreate();
 
+        if (!((NfcApplication) getApplication()).amIWaitingForPayment()) {
+            stopSelf();
+            return;
+        }
+
         mAppSelected = false;
         mCcSelected = false;
         mNdefSelected = false;
@@ -96,8 +101,6 @@ public class NfcCardEmulationService extends HostApduService {
 
     @Override
     public byte[] processCommandApdu(byte[] commandApdu, Bundle extras) {
-
-        Log.v("NFC", "Processing command " + commandApdu.toString());
 
         if (Arrays.equals(SELECT_APP, commandApdu)) {
             mAppSelected = true;
