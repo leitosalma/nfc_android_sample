@@ -3,8 +3,10 @@
     package="com.demo.meli.nfcdemo">
 
     <uses-permission android:name="android.permission.NFC" />
+    <uses-feature android:name="android.hardware.nfc" android:required="true" />
 
     <application
+        android:name=".NfcApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -40,6 +42,7 @@
             android:name=".EnterAmountActivity"
             android:label="@string/title_activity_amount"
             android:theme="@style/AppTheme.NoActionBar" />
+
         <activity
             android:name=".NfcPlaceholderActivity"
             android:label="@string/title_activity_nfc_placeholder"
@@ -48,7 +51,9 @@
             <intent-filter>
                 <action android:name="android.nfc.action.NDEF_DISCOVERED" />
                 <category android:name="android.intent.category.DEFAULT" />
-                <data android:scheme="melinfc" />
+                <data android:scheme="melinfc"
+                    android:host="mp.com"
+                    android:pathPrefix="/processNFCPayment" />
             </intent-filter>
 
         </activity>

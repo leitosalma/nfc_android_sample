@@ -1,28 +1,21 @@
 package com.demo.meli.nfcdemo;
 
+import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.net.Uri;
 import android.nfc.NdefMessage;
 import android.nfc.NdefRecord;
 import android.nfc.NfcAdapter;
 import android.os.Bundle;
 import android.os.Parcelable;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.support.v4.content.IntentCompat;
 import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -34,6 +27,12 @@ public class NfcPlaceholderActivity extends AppCompatActivity {
     private NfcAdapter mNfcAdapter;
     private PendingIntent mNfcPendingIntent;
     IntentFilter[] mReadTagFilters;
+
+    public static Intent newIntent(final Context context, String placeholderText) {
+        final Intent intent = new Intent(context, NfcPlaceholderActivity.class);
+        intent.putExtra(EXTRA_PLACEHOLDER_TEXT, placeholderText);
+        return intent;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,40 +49,16 @@ public class NfcPlaceholderActivity extends AppCompatActivity {
             placeholderTextView.setText(placeholderText);
         }
 
-        // Catch the NFC Intent even if this activity is in foreground
-        mNfcAdapter = NfcAdapter.getDefaultAdapter(this);
-        if (mNfcAdapter == null){
-            Toast.makeText(this, "Tu dispositivo no cuenta con el hardware necesario para pagar con NFC", Toast.LENGTH_LONG).show();
-            finish();
-            return;
-        }
+        setupNfcAdapter();
 
-        mNfcPendingIntent = PendingIntent.getActivity(this, 0, new Intent(this, getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0);
-        IntentFilter ndefDetected = new IntentFilter(NfcAdapter.ACTION_NDEF_DISCOVERED);
-        ndefDetected.addDataScheme("melinfc");
-        mReadTagFilters = new IntentFilter[] { ndefDetected };
-    }
-
-    public static Intent newIntent(final Context context, String placeholderText) {
-        final Intent intent = new Intent(context, NfcPlaceholderActivity.class);
-        intent.putExtra(EXTRA_PLACEHOLDER_TEXT, placeholderText);
-        return intent;
+        handleIntent(getIntent());
     }
 
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
 
-        Log.d("NFC", "onNewIntent: " + intent);
-
-        // Currently in tag READING mode
-        if (intent.getAction().equals(NfcAdapter.ACTION_NDEF_DISCOVERED)) {
-            NdefMessage[] msgs = getNdefMessagesFromIntent(intent);
-
-            Toast.makeText(this, "NDEF: " + msgs[0].toString(), Toast.LENGTH_LONG).show();
-        } else if (intent.getAction().equals(NfcAdapter.ACTION_TAG_DISCOVERED)) {
-            Toast.makeText(this, "This NFC tag has no NDEF data.", Toast.LENGTH_LONG).show();
-        }
+        handleIntent(intent);
     }
 
     NdefMessage[] getNdefMessagesFromIntent(Intent intent) {
@@ -127,38 +102,74 @@ public class NfcPlaceholderActivity extends AppCompatActivity {
 
         LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, new IntentFilter(NfcCardEmulationService.INTENT_TAG_READ));
 
-        if (getIntent().getAction() != null) {
-            // tag received when app is not running and not in the foreground:
-            if (getIntent().getAction().equals(NfcAdapter.ACTION_NDEF_DISCOVERED)) {
-                NdefMessage[] msgs = getNdefMessagesFromIntent(getIntent());
-                NdefRecord record = msgs[0].getRecords()[0];
-                byte[] payload = record.getPayload();
-
-                String payloadString = new String(payload);
-
-                Toast.makeText(NfcPlaceholderActivity.this, "Payload: " + payloadString, Toast.LENGTH_LONG).show();
-            }
-        }
-
-        // Enable priority for current activity to detect scanned tags
-        // enableForegroundDispatch( activity, pendingIntent, intentsFiltersArray, techListsArray );
-        mNfcAdapter.enableForegroundDispatch(this, mNfcPendingIntent, mReadTagFilters, null);
+        setupNfcForegroundDispatch(this, mNfcAdapter);
 
     }
 
     @Override
     protected void onPause() {
-        super.onPause();
+        stopNfcForegroundDispatch(this, mNfcAdapter);
 
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);
 
-        mNfcAdapter.disableForegroundDispatch(this);
+        super.onPause();
     }
 
     private void navigateToMainScreen() {
         Intent intent = new Intent(this, MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         startActivity(intent);
+    }
+
+    private void setupNfcAdapter() {
+        mNfcAdapter = NfcAdapter.getDefaultAdapter(this);
+
+        if (mNfcAdapter == null) {
+            // Stop here, we definitely need NFC
+            Toast.makeText(this, "Tu teléfono no soporta NFC", Toast.LENGTH_LONG).show();
+            finish();
+            return;
+
+        }
+
+        if (!mNfcAdapter.isEnabled()) {
+            Toast.makeText(this, "Tenés que habilitar NFC en tu teléfono para poder enviar y recibir pagos", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void handleIntent(Intent intent) {
+        Log.d("NFC", "onNewIntent: " + intent);
+
+        if (intent != null && intent.getAction() != null) {
+            if (intent.getAction().equals(NfcAdapter.ACTION_NDEF_DISCOVERED)) {
+                NdefMessage[] msgs = getNdefMessagesFromIntent(intent);
+                Toast.makeText(this, "NDEF: " + msgs[0].getRecords()[0].getPayload().toString(), Toast.LENGTH_LONG).show();
+            } else if (intent.getAction().equals(NfcAdapter.ACTION_TAG_DISCOVERED)) {
+                Toast.makeText(this, "This NFC tag has no NDEF data.", Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+
+    public static void setupNfcForegroundDispatch(final Activity activity, NfcAdapter adapter) {
+        final Intent intent = new Intent(activity.getApplicationContext(), activity.getClass());
+        intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+
+        final PendingIntent pendingIntent = PendingIntent.getActivity(activity.getApplicationContext(), 0, intent, 0);
+
+        IntentFilter[] filters = new IntentFilter[1];
+        String[][] techList = new String[][]{};
+
+        // Notice that this is the same filter as in our manifest.
+        filters[0] = new IntentFilter();
+        filters[0].addAction(NfcAdapter.ACTION_NDEF_DISCOVERED);
+        filters[0].addCategory(Intent.CATEGORY_DEFAULT);
+        filters[0].addDataScheme("melinfc");
+
+        adapter.enableForegroundDispatch(activity, pendingIntent, filters, techList);
+    }
+
+    public static void stopNfcForegroundDispatch(final Activity activity, NfcAdapter adapter) {
+        adapter.disableForegroundDispatch(activity);
     }
 
     @Override
@@ -170,7 +181,6 @@ public class NfcPlaceholderActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
-
     }
 
 }

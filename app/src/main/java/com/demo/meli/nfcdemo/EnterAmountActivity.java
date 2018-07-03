@@ -11,11 +11,15 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 
+import java.text.ParseException;
+
+import faranjit.currency.edittext.CurrencyEditText;
+
 public class EnterAmountActivity extends AppCompatActivity {
 
     public static String EXTRA_AMOUNT = "extra_amount";
 
-    private EditText amountEditText;
+    private CurrencyEditText amountEditText;
     private Button confirmButton;
 
     @Override
@@ -29,16 +33,23 @@ public class EnterAmountActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayShowHomeEnabled(true);
 
         amountEditText = findViewById(R.id.amount_edit_text);
+        amountEditText.setText("0");
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.showSoftInput(amountEditText, InputMethodManager.SHOW_IMPLICIT);
-        amountEditText.requestFocus();
+        imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, InputMethodManager.HIDE_IMPLICIT_ONLY);
 
         confirmButton = findViewById(R.id.wait_for_payment);
         confirmButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent returnIntent = new Intent();
-                returnIntent.putExtra(EXTRA_AMOUNT, Float.parseFloat(amountEditText.getText().toString()));
+                Float amount = 0f;
+                try {
+                    amount = Float.parseFloat(amountEditText.getText().toString().replace("$", "").replace(",", "."));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                returnIntent.putExtra(EXTRA_AMOUNT, amount);
                 setResult(RESULT_OK, returnIntent);
                 finish();
             }
@@ -48,6 +59,14 @@ public class EnterAmountActivity extends AppCompatActivity {
     public static Intent newIntent(final Context context) {
         final Intent intent = new Intent(context, EnterAmountActivity.class);
         return intent;
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(getWindow().getCurrentFocus().getWindowToken(), 0);
     }
 
     @Override

@@ -10,14 +10,13 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import java.util.Arrays;
-import android.os.Handler;
 
 public class NfcCardEmulationService extends HostApduService {
 
     public static final String INTENT_TAG_READ = "mp_tag_read";
     private static String PAYMENT_AMOUNT = "payment_amount";
 
-    private String paymentUrl = "melinfc://processNFCPayment?userId=999";
+    private String paymentUrl = "melinfc://mp.com/processNFCPayment?userId=999";
 
     private byte[] mNdefRecordFile;
 
@@ -72,6 +71,11 @@ public class NfcCardEmulationService extends HostApduService {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        if (!((NfcApplication) getApplication()).amIWaitingForPayment()) {
+            stopSelf();
+            return super.onStartCommand(intent, flags, startId);
+        }
+
         Float paymentAmount = intent.getFloatExtra(PAYMENT_AMOUNT, 0);
 
         generateNdefMessage(paymentAmount);
@@ -92,6 +96,8 @@ public class NfcCardEmulationService extends HostApduService {
 
     @Override
     public byte[] processCommandApdu(byte[] commandApdu, Bundle extras) {
+
+        Log.v("NFC", "Processing command " + commandApdu.toString());
 
         if (Arrays.equals(SELECT_APP, commandApdu)) {
             mAppSelected = true;

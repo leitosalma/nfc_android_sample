@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -28,6 +27,7 @@ public class MainActivity extends AppCompatActivity {
         receivePaymentButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                ((NfcApplication) getApplication()).setWaitingForPayment(true);
                 startActivityForResult(EnterAmountActivity.newIntent(MainActivity.this), 1);
             }
         });
@@ -42,17 +42,28 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+
+        ((NfcApplication) getApplication()).setWaitingForPayment(false);
+    }
+
+    @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
+        ((NfcApplication) getApplication()).setWaitingForPayment(false);
+
         if (requestCode == PAY_REQUEST_CODE) {
-            Float paymentAmount = data.getFloatExtra(EnterAmountActivity.EXTRA_AMOUNT, 0);
+            if (data != null) {
+                Float paymentAmount = data.getFloatExtra(EnterAmountActivity.EXTRA_AMOUNT, 0);
 
-            // Send the amount to the CardEmulationService
-            startService(NfcCardEmulationService.newIntent(this, paymentAmount));
+                // Send the amount to the CardEmulationService
+                startService(NfcCardEmulationService.newIntent(this, paymentAmount));
 
-            // Show the placeholder activity
-            startActivity(NfcPlaceholderActivity.newIntent(this, "Acercá tu teléfono al del comprador para terminar el pago"));
+                // Show the placeholder activity
+                startActivity(NfcPlaceholderActivity.newIntent(this, "Acercá tu teléfono al del comprador para terminar el pago"));
+            }
         }
     }
 
