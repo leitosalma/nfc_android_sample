@@ -183,4 +183,10 @@ public class NfcPlaceholderActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    public void finish() {
+        ((NfcApplication) getApplication()).setWaitingForPayment(false);
+
+        super.finish();
+    }
 }

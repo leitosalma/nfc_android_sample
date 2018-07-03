@@ -8,6 +8,7 @@ import android.nfc.cardemulation.HostApduService;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.util.Arrays;
 
@@ -71,11 +72,6 @@ public class NfcCardEmulationService extends HostApduService {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (!((NfcApplication) getApplication()).amIWaitingForPayment()) {
-            stopSelf();
-            return super.onStartCommand(intent, flags, startId);
-        }
-
         Float paymentAmount = intent.getFloatExtra(PAYMENT_AMOUNT, 0);
 
         generateNdefMessage(paymentAmount);
@@ -87,11 +83,6 @@ public class NfcCardEmulationService extends HostApduService {
     public void onCreate() {
         super.onCreate();
 
-        if (!((NfcApplication) getApplication()).amIWaitingForPayment()) {
-            stopSelf();
-            return;
-        }
-
         mAppSelected = false;
         mCcSelected = false;
         mNdefSelected = false;
@@ -101,6 +92,12 @@ public class NfcCardEmulationService extends HostApduService {
 
     @Override
     public byte[] processCommandApdu(byte[] commandApdu, Bundle extras) {
+
+        Log.d("NFC", "Processing apdu command: " + commandApdu.toString());
+
+        if (!((NfcApplication) getApplication()).amIWaitingForPayment()) {
+            Toast.makeText(getApplicationContext(), "Error: no debería estar procesando comandos APDU", Toast.LENGTH_SHORT).show();
+        }
 
         if (Arrays.equals(SELECT_APP, commandApdu)) {
             mAppSelected = true;
