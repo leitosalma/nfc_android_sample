@@ -25,7 +25,7 @@
         </activity>
 
         <service
-            android:name=".NfcCardEmulationService"
+            android:name=".seller.NfcCardEmulationService"
             android:enabled="true"
             android:exported="true"
             android:permission="android.permission.BIND_NFC_SERVICE">
@@ -35,12 +35,27 @@
 
             <meta-data
                 android:name="android.nfc.cardemulation.host_apdu_service"
-                android:resource="@xml/apduservice" />
+                android:resource="@xml/nfc_card_emulation_service" />
+        </service>
+
+        <!-- Service for handling communication with NFC terminal. -->
+        <service android:name=".seller.NfcCustomCardEmulationService"
+            android:exported="true"
+            android:permission="android.permission.BIND_NFC_SERVICE">
+            <!-- Intent filter indicating that we support card emulation. -->
+            <intent-filter>
+                <action android:name="android.nfc.cardemulation.action.HOST_APDU_SERVICE"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+            <!-- Required XML configuration file, listing the AIDs that we are emulating cards
+                 for. This defines what protocols our card emulation service supports. -->
+            <meta-data android:name="android.nfc.cardemulation.host_apdu_service"
+                android:resource="@xml/nfc_custom_card_emulation_service"/>
         </service>
 
         <activity
             android:name=".EnterAmountActivity"
-            android:label="@string/title_activity_amount"
+            android:label="Monto de la transacción"
             android:theme="@style/AppTheme.NoActionBar" />
 
         <activity
@@ -57,10 +72,6 @@
             </intent-filter>
 
         </activity>
-        <activity
-            android:name=".PayWithNfcActivity"
-            android:label="@string/title_activity_pay_with_nfc"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
 </manifest>

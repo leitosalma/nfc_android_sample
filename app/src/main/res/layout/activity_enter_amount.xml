@@ -33,9 +33,11 @@
             android:gravity="center"
             android:inputType="numberDecimal"
             android:focusable="true"
+            android:textSize="48sp"
             android:focusableInTouchMode="true"
             android:textColor="@android:color/black"
-            app:locale="es_AR"
+            app:groupDivider=","
+            app:monetaryDivider="."
             app:showSymbol="true"
         />
 

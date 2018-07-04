@@ -1,4 +1,4 @@
-package com.demo.meli.nfcdemo;
+package com.demo.meli.nfcdemo.seller;
 
 import android.content.Context;
 import android.content.Intent;
@@ -10,14 +10,19 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.demo.meli.nfcdemo.NfcApplication;
+
 import java.util.Arrays;
 
-public class NfcCardEmulationService extends HostApduService {
+/**
+ * This HostApduService emulates the NFC Tag Type 4 behaviour.
+ *
+ * It's used mainly by iOS buyers (NFC Reader)
+ */
 
+public class NfcCardEmulationService extends HostApduService {
     public static final String INTENT_TAG_READ = "mp_tag_read";
     private static String PAYMENT_AMOUNT = "payment_amount";
-
-    private String paymentUrl = "melinfc://mp.com/processNFCPayment?userId=999";
 
     private byte[] mNdefRecordFile;
 
@@ -93,8 +98,6 @@ public class NfcCardEmulationService extends HostApduService {
     @Override
     public byte[] processCommandApdu(byte[] commandApdu, Bundle extras) {
 
-        Log.d("NFC", "Processing apdu command: " + commandApdu.toString());
-
         if (!((NfcApplication) getApplication()).amIWaitingForPayment()) {
             Toast.makeText(getApplicationContext(), "Error: no debería estar procesando comandos APDU", Toast.LENGTH_SHORT).show();
         }
@@ -146,7 +149,7 @@ public class NfcCardEmulationService extends HostApduService {
     }
 
     private void generateNdefMessage(Float paymentAmount) {
-        String url = paymentAmount > 0 ? (paymentUrl + "&amount=" + paymentAmount) : paymentUrl;
+        String url = ((NfcApplication) getApplication()).getPaymentUrl(paymentAmount);
 
         Log.d("NFC", "Writing payment url to tag: " + url);
 

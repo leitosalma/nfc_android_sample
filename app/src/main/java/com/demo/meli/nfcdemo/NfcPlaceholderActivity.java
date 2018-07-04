@@ -16,21 +16,28 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.demo.meli.nfcdemo.seller.NfcCardEmulationService;
+
 public class NfcPlaceholderActivity extends AppCompatActivity {
 
+    private static String EXTRA_PLACEHOLDER_TITLE = "extra_placeholder_title";
     private static String EXTRA_PLACEHOLDER_TEXT = "extra_placeholder_text";
+    private static String EXTRA_PLACEHOLDER_ICON = "extra_placeholder_icon";
 
     // NFC-related variables
     private NfcAdapter mNfcAdapter;
     private PendingIntent mNfcPendingIntent;
     IntentFilter[] mReadTagFilters;
 
-    public static Intent newIntent(final Context context, String placeholderText) {
+    public static Intent newIntent(final Context context, String title, String placeholderText, int placeholderIcon) {
         final Intent intent = new Intent(context, NfcPlaceholderActivity.class);
+        intent.putExtra(EXTRA_PLACEHOLDER_TITLE, title);
         intent.putExtra(EXTRA_PLACEHOLDER_TEXT, placeholderText);
+        intent.putExtra(EXTRA_PLACEHOLDER_ICON, placeholderIcon);
         return intent;
     }
 
@@ -38,15 +45,27 @@ public class NfcPlaceholderActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_nfc_placeholder);
+
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
 
+        String title = getIntent().getStringExtra(EXTRA_PLACEHOLDER_TITLE);
+        if (title != null) {
+            setTitle(title);
+        }
+
         String placeholderText = getIntent().getStringExtra(EXTRA_PLACEHOLDER_TEXT);
         if (placeholderText != null) {
             TextView placeholderTextView = findViewById(R.id.placeholder_text);
             placeholderTextView.setText(placeholderText);
+        }
+
+        int placeholderIcon = getIntent().getIntExtra(EXTRA_PLACEHOLDER_ICON, 0);
+        if (placeholderIcon > 0) {
+            ImageView placeholderImageView = findViewById(R.id.nfc_placeholder);
+            placeholderImageView.setImageResource(placeholderIcon);
         }
 
         setupNfcAdapter();

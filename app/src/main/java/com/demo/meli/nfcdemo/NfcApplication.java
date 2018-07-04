@@ -2,11 +2,16 @@ package com.demo.meli.nfcdemo;
 
 import android.app.Application;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.pm.PackageManager;
+import android.nfc.tech.NfcA;
 import android.widget.Toast;
+
+import com.demo.meli.nfcdemo.seller.NfcCardEmulationService;
 
 public class NfcApplication extends Application {
     private boolean waitingForPayment = false;
+    private String paymentUrl = "melinfc://mp.com/processNFCPayment?userId=999";
 
     public boolean amIWaitingForPayment() {
         return waitingForPayment;
@@ -24,5 +29,10 @@ public class NfcApplication extends Application {
             Toast.makeText(getApplicationContext(), "NFC Card Emulation Disabled", Toast.LENGTH_SHORT).show();
             getApplicationContext().getPackageManager().setComponentEnabledSetting(new ComponentName(getApplicationContext(), NfcCardEmulationService.class), PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
         }
+    }
+
+    public String getPaymentUrl(Float paymentAmount) {
+        String url = paymentAmount > 0 ? (paymentUrl + "&amount=" + paymentAmount) : paymentUrl;
+        return url;
     }
 }

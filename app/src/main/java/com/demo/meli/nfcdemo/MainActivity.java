@@ -4,11 +4,15 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
+
+import com.demo.meli.nfcdemo.seller.NfcCardEmulationService;
+import com.demo.meli.nfcdemo.seller.NfcCustomCardEmulationService;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -23,7 +27,7 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        Button receivePaymentButton = findViewById(R.id.receive_payment_button);
+        CardView receivePaymentButton = findViewById(R.id.receive_payment_button);
         receivePaymentButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -31,11 +35,11 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        Button sendPaymentButton = findViewById(R.id.send_payment_button);
+        CardView sendPaymentButton = findViewById(R.id.send_payment_button);
         sendPaymentButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startActivity(NfcPlaceholderActivity.newIntent(MainActivity.this, "Acercá tu teléfono al del vendedor para realizar el pago"));
+                startActivity(NfcPlaceholderActivity.newIntent(MainActivity.this, "Pagar con NFC","Acercá tu teléfono al del vendedor para realizar el pago", R.mipmap.pay_nfc));
             }
         });
     }
@@ -52,37 +56,19 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == PAY_REQUEST_CODE) {
             if (data != null) {
                 Float paymentAmount = data.getFloatExtra(EnterAmountActivity.EXTRA_AMOUNT, 0);
-
-                // Send the amount to the CardEmulationService
-                startService(NfcCardEmulationService.newIntent(this, paymentAmount));
-
-                // Show the placeholder activity
-                startActivity(NfcPlaceholderActivity.newIntent(this, "Acercá tu teléfono al del comprador para terminar el pago"));
-
-                ((NfcApplication) getApplication()).setWaitingForPayment(true);
+                prepareNfcForPayment(paymentAmount);
             }
         }
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
+    private void prepareNfcForPayment(Float amount) {
+        // Send the amount to the HostApduServices
+        startService(NfcCardEmulationService.newIntent(this, amount));
+        startService(NfcCustomCardEmulationService.newIntent(this, amount));
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
+        // Show the placeholder activity
+        startActivity(NfcPlaceholderActivity.newIntent(this,"Cobrar con NFC","Acercá tu teléfono al del comprador para terminar el pago", R.mipmap.receive_nfc));
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
+        ((NfcApplication) getApplication()).setWaitingForPayment(true);
     }
 }
