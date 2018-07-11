@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".NfcPlaceholderActivity">
+    tools:context=".buyer.NfcConfirmPayment">
 
     <android.support.design.widget.AppBarLayout
         android:layout_width="match_parent"
@@ -23,27 +23,41 @@
     <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_centerVertical="true"
-        android:gravity="center">
-
-        <ImageView
-            android:id="@+id/nfc_placeholder"
-            android:layout_width="323dp"
-            android:layout_height="168dp"
-            android:layout_centerHorizontal="true"
-            android:src="@mipmap/passivevsactive"/>
+        android:layout_centerVertical="true">
 
         <TextView
-            android:id="@+id/placeholder_text"
+            android:id="@+id/payment_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
+            android:paddingTop="100dp"
+            android:gravity="center"
+            android:textSize="18sp"
+            android:layout_marginTop="20dp"
+            android:text="Vas a pagar al vendedor" />
+
+        <TextView
+            android:id="@+id/payment_amount"
             android:layout_width="250dp"
             android:layout_height="wrap_content"
-            android:layout_below="@id/nfc_placeholder"
             android:layout_centerHorizontal="true"
-            android:lines="2"
+            android:layout_below="@+id/payment_title"
             android:gravity="center"
-            android:textSize="16sp"
+            android:textSize="42sp"
             android:layout_marginTop="20dp"
-            android:text="Esperando el pago..."/>
+            android:text="$ 12,9"
+            android:textColor="#459CDD"/>
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:text="Confirmar"
+            android:padding="20dp"
+            android:background="#459CDD"
+            android:textColor="#ffffff"/>
 
     </RelativeLayout>
+
 </android.support.design.widget.CoordinatorLayout>

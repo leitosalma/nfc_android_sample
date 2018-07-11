@@ -11,6 +11,7 @@ import com.demo.meli.nfcdemo.seller.NfcCardEmulationService;
 
 public class NfcApplication extends Application {
     private boolean waitingForPayment = false;
+    private Float amountInQueue = 0f;
     private String paymentUrl = "melinfc://mp.com/processNFCPayment?userId=999";
 
     public boolean amIWaitingForPayment() {
@@ -31,8 +32,12 @@ public class NfcApplication extends Application {
         }
     }
 
-    public String getPaymentUrl(Float paymentAmount) {
-        String url = paymentAmount > 0 ? (paymentUrl + "&amount=" + paymentAmount) : paymentUrl;
+    public String getPaymentUrl() {
+        String url = amountInQueue > 0 ? (paymentUrl + "&amount=" + amountInQueue) : paymentUrl;
         return url;
+    }
+
+    public void setAmountInQueue(Float amountInQueue) {
+        this.amountInQueue = amountInQueue;
     }
 }

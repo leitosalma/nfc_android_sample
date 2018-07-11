@@ -41,8 +41,6 @@ import java.util.Arrays;
 
 public class NfcCustomCardEmulationService extends HostApduService {
     private static final String TAG = "NfcCustomCardEmulationService";
-    private static String PAYMENT_AMOUNT = "payment_amount";
-    private Float paymentAmount = 0f;
 
     // Custom AID for our card service.
     private static final String CUSTOM_CARD_AID = "F222222222";
@@ -66,17 +64,11 @@ public class NfcCustomCardEmulationService extends HostApduService {
     int pointer;
 
 
-    public static Intent newIntent(final Context context, Float paymentAmount) {
-        final Intent intent = new Intent(context, NfcCardEmulationService.class);
-        intent.putExtra(PAYMENT_AMOUNT, paymentAmount);
+    public static Intent newIntent(final Context context) {
+        final Intent intent = new Intent(context, NfcCustomCardEmulationService.class);
         return intent;
     }
 
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        paymentAmount = intent.getFloatExtra(PAYMENT_AMOUNT, 0);
-        return super.onStartCommand(intent, flags, startId);
-    }
 
     @Override
     public void onDeactivated(int reason) { }
@@ -85,9 +77,9 @@ public class NfcCustomCardEmulationService extends HostApduService {
     public byte[] processCommandApdu(byte[] commandApdu, Bundle extras) {
         Log.i(TAG, "Received APDU: " + ByteArrayToHexString(commandApdu));
         // If the APDU matches the SELECT AID command for this service,
-        // send the loyalty card account number, followed by a SELECT_OK status trailer (0x9000).
+        // send the payment url, followed by a SELECT_OK status trailer (0x9000).
         if (Arrays.equals(SELECT_APDU, commandApdu)) {
-            String paymentUrl = ((NfcApplication) getApplication()).getPaymentUrl(paymentAmount);
+            String paymentUrl = ((NfcApplication) getApplication()).getPaymentUrl();
             byte[] accountBytes = paymentUrl.getBytes();
             Log.i(TAG, "Sending payment Url: " + paymentUrl);
             readFromFile();

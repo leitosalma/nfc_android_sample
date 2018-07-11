@@ -4,6 +4,8 @@
     <string name="servicedesc">NFC Demo</string>
     <string name="aiddescription">NFC demo</string>
     <string name="title_activity_amount">AmountActivity</string>
-    <string name="title_activity_nfc_placeholder">NfcPlaceholderActivity</string>
+    <string name="title_activity_nfc_wait_for_payment">Esperando el pago</string>
+    <string name="title_activity_nfc_wait_for_charge">Esperando el cobro</string>
     <string name="title_activity_pay_with_nfc">PayWithNfcActivity</string>
+    <string name="title_activity_nfc_confirm_payment">NfcConfirmPayment</string>
 </resources>

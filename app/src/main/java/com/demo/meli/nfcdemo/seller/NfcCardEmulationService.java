@@ -11,6 +11,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.demo.meli.nfcdemo.NfcApplication;
+import com.demo.meli.nfcdemo.buyer.NfcWaitForChargeActivity;
 
 import java.util.Arrays;
 
@@ -22,7 +23,6 @@ import java.util.Arrays;
 
 public class NfcCardEmulationService extends HostApduService {
     public static final String INTENT_TAG_READ = "mp_tag_read";
-    private static String PAYMENT_AMOUNT = "payment_amount";
 
     private byte[] mNdefRecordFile;
 
@@ -34,12 +34,6 @@ public class NfcCardEmulationService extends HostApduService {
 
     public NfcCardEmulationService() {
 
-    }
-
-    public static Intent newIntent(final Context context, Float paymentAmount) {
-        final Intent intent = new Intent(context, NfcCardEmulationService.class);
-        intent.putExtra(PAYMENT_AMOUNT, paymentAmount);
-        return intent;
     }
 
     private final static byte[] SELECT_APP = new byte[] {(byte)0x00, (byte)0xa4, (byte)0x04, (byte)0x00,
@@ -75,13 +69,9 @@ public class NfcCardEmulationService extends HostApduService {
             (byte)0xff, // NDEF File write access denied
     };
 
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        Float paymentAmount = intent.getFloatExtra(PAYMENT_AMOUNT, 0);
-
-        generateNdefMessage(paymentAmount);
-
-        return super.onStartCommand(intent, flags, startId);
+    public static Intent newIntent(final Context context) {
+        final Intent intent = new Intent(context, NfcCardEmulationService.class);
+        return intent;
     }
 
     @Override
@@ -92,7 +82,13 @@ public class NfcCardEmulationService extends HostApduService {
         mCcSelected = false;
         mNdefSelected = false;
 
-        generateNdefMessage(0f);
+        generateNdefMessage();
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        generateNdefMessage();
+        return super.onStartCommand(intent, flags, startId);
     }
 
     @Override
@@ -148,8 +144,8 @@ public class NfcCardEmulationService extends HostApduService {
         mNdefSelected = false;
     }
 
-    private void generateNdefMessage(Float paymentAmount) {
-        String url = ((NfcApplication) getApplication()).getPaymentUrl(paymentAmount);
+    private void generateNdefMessage() {
+        String url = ((NfcApplication) getApplication()).getPaymentUrl();
 
         Log.d("NFC", "Writing payment url to tag: " + url);
 
@@ -167,7 +163,7 @@ public class NfcCardEmulationService extends HostApduService {
     }
 
     private void tagRead() {
-        Log.d("NFC", "Tag Read!!!");
+        Log.d("NFC", "Tag Read!!!" + ((NfcApplication) getApplication()).getPaymentUrl());
 
         Intent intent = new Intent(INTENT_TAG_READ);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);

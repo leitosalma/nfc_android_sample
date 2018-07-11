@@ -7,12 +7,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.widget.Button;
 
+import com.demo.meli.nfcdemo.buyer.NfcWaitForChargeActivity;
 import com.demo.meli.nfcdemo.seller.NfcCardEmulationService;
 import com.demo.meli.nfcdemo.seller.NfcCustomCardEmulationService;
+import com.demo.meli.nfcdemo.seller.NfcWaitForPaymentActivity;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -31,7 +30,7 @@ public class MainActivity extends AppCompatActivity {
         receivePaymentButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startActivityForResult(EnterAmountActivity.newIntent(MainActivity.this), 1);
+                startActivityForResult(EnterAmountActivity.newIntent(MainActivity.this), PAY_REQUEST_CODE);
             }
         });
 
@@ -39,7 +38,7 @@ public class MainActivity extends AppCompatActivity {
         sendPaymentButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startActivity(NfcPlaceholderActivity.newIntent(MainActivity.this, "Pagar con NFC","Acercá tu teléfono al del vendedor para realizar el pago", R.mipmap.pay_nfc));
+                startActivity(NfcWaitForChargeActivity.newIntent(MainActivity.this));
             }
         });
     }
@@ -62,13 +61,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void prepareNfcForPayment(Float amount) {
-        // Send the amount to the HostApduServices
-        startService(NfcCardEmulationService.newIntent(this, amount));
-        startService(NfcCustomCardEmulationService.newIntent(this, amount));
+        // Enqueue the amount to be consumed by HostApduService's
+        ((NfcApplication) getApplication()).setAmountInQueue(amount);
+        ((NfcApplication) getApplication()).setWaitingForPayment(true);
+        startService(NfcCardEmulationService.newIntent(this));
+        startService(NfcCustomCardEmulationService.newIntent(this));
 
         // Show the placeholder activity
-        startActivity(NfcPlaceholderActivity.newIntent(this,"Cobrar con NFC","Acercá tu teléfono al del comprador para terminar el pago", R.mipmap.receive_nfc));
-
-        ((NfcApplication) getApplication()).setWaitingForPayment(true);
+        startActivity(NfcWaitForPaymentActivity.newIntent(this));
     }
 }

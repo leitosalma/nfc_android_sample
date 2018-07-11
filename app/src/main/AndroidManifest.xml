@@ -3,7 +3,10 @@
     package="com.demo.meli.nfcdemo">
 
     <uses-permission android:name="android.permission.NFC" />
-    <uses-feature android:name="android.hardware.nfc" android:required="true" />
+
+    <uses-feature
+        android:name="android.hardware.nfc"
+        android:required="true" />
 
     <application
         android:name=".NfcApplication"
@@ -39,39 +42,56 @@
         </service>
 
         <!-- Service for handling communication with NFC terminal. -->
-        <service android:name=".seller.NfcCustomCardEmulationService"
+        <service
+            android:name=".seller.NfcCustomCardEmulationService"
             android:exported="true"
             android:permission="android.permission.BIND_NFC_SERVICE">
+
             <!-- Intent filter indicating that we support card emulation. -->
             <intent-filter>
-                <action android:name="android.nfc.cardemulation.action.HOST_APDU_SERVICE"/>
-                <category android:name="android.intent.category.DEFAULT"/>
+                <action android:name="android.nfc.cardemulation.action.HOST_APDU_SERVICE" />
+
+                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
-            <!-- Required XML configuration file, listing the AIDs that we are emulating cards
-                 for. This defines what protocols our card emulation service supports. -->
-            <meta-data android:name="android.nfc.cardemulation.host_apdu_service"
-                android:resource="@xml/nfc_custom_card_emulation_service"/>
+            <!--
+                 Required XML configuration file, listing the AIDs that we are emulating cards
+                 for. This defines what protocols our card emulation service supports.
+            -->
+            <meta-data
+                android:name="android.nfc.cardemulation.host_apdu_service"
+                android:resource="@xml/nfc_custom_card_emulation_service" />
         </service>
 
         <activity
             android:name=".EnterAmountActivity"
             android:label="Monto de la transacción"
             android:theme="@style/AppTheme.NoActionBar" />
-
         <activity
-            android:name=".NfcPlaceholderActivity"
-            android:label="@string/title_activity_nfc_placeholder"
+            android:name=".seller.NfcWaitForPaymentActivity"
+            android:label="@string/title_activity_nfc_wait_for_payment"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
+        <activity
+            android:name=".buyer.NfcWaitForChargeActivity"
+            android:label="@string/title_activity_nfc_wait_for_charge"
             android:theme="@style/AppTheme.NoActionBar">
 
+            <!--
+             NFC-related intent filter. Allows application to handle messages from any
+             NFC-A devices discovered. Other Android devices are required to support NFC-A.
+             See: res/xml/nfc_tech_filter.xml
+            -->
             <intent-filter>
-                <action android:name="android.nfc.action.NDEF_DISCOVERED" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data android:scheme="melinfc"
-                    android:host="mp.com"
-                    android:pathPrefix="/processNFCPayment" />
+                <action android:name="android.nfc.action.TECH_DISCOVERED" />
             </intent-filter>
 
+            <meta-data
+                android:name="android.nfc.action.TECH_DISCOVERED"
+                android:resource="@xml/nfc_tech_filter" />
         </activity>
+        <activity
+            android:name=".buyer.NfcConfirmPayment"
+            android:label="@string/title_activity_nfc_confirm_payment"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
 </manifest>
